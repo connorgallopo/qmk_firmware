@@ -99,7 +99,9 @@
             {"matrix": [4, 8], "x": 166, "y": 58, "flags": 4},
             {"matrix": [4, 15], "x": 195, "y": 58, "flags": 4},
             {"matrix": [4, 16], "x": 207, "y": 58, "flags": 4},
-            {"matrix": [4, 17], "x": 218, "y": 58, "flags": 4}
+            {"matrix": [4, 17], "x": 218, "y": 58, "flags": 4},
+            {"x": 0, "y": 32, "flags": 8},
+            {"x": 184, "y": 32, "flags": 8}
         ],
         "sleep": true
     },
@@ -146,7 +148,7 @@
                 {"label": "Del", "matrix": [1, 15], "x": 16.25, "y": 1},
                 {"label": "End", "matrix": [1, 16], "x": 17.25, "y": 1},
                 {"label": "PgDn", "matrix": [1, 17], "x": 18.25, "y": 1},
-                {"label": "Ctrl", "matrix": [2, 0], "x": 0, "y": 2, "w": 1.75},
+                {"label": "Caps Lock", "matrix": [2, 0], "x": 0, "y": 2, "w": 1.75},
                 {"label": "A", "matrix": [2, 1], "x": 1.75, "y": 2},
                 {"label": "S", "matrix": [2, 2], "x": 2.75, "y": 2},
                 {"label": "D", "matrix": [2, 3], "x": 3.75, "y": 2},
@@ -171,7 +173,7 @@
                 {"label": "Dot", "matrix": [3, 10], "x": 10.25, "y": 3},
                 {"label": "Slash", "matrix": [3, 11], "x": 11.25, "y": 3},
                 {"label": "RShift", "matrix": [3, 12], "x": 12.25, "y": 3, "w": 1.75},
-                {"label": "Fn2", "matrix": [3, 13], "x": 14, "y": 3},
+                {"label": "Fn", "matrix": [3, 13], "x": 14, "y": 3},
                 {"label": "OLED-", "matrix": [3, 15], "x": 16.25, "y": 3},
                 {"label": "Up", "matrix": [3, 16], "x": 17.25, "y": 3},
                 {"label": "OLED+", "matrix": [3, 17], "x": 18.25, "y": 3},
@@ -180,7 +182,7 @@
                 {"label": "Alt", "matrix": [4, 2], "x": 2.5, "y": 4, "w": 1.5},
                 {"label": "Space", "matrix": [4, 4], "x": 4, "y": 4, "w": 7},
                 {"label": "RAlt", "matrix": [4, 6], "x": 11, "y": 4, "w": 1.5},
-                {"label": "Fn", "matrix": [4, 7], "x": 12.5, "y": 4},
+                {"label": "Right GUI", "matrix": [4, 7], "x": 12.5, "y": 4},
                 {"label": "RCtrl", "matrix": [4, 8], "x": 13.5, "y": 4, "w": 1.5},
                 {"label": "Left", "matrix": [4, 15], "x": 16.25, "y": 4},
                 {"label": "Down", "matrix": [4, 16], "x": 17.25, "y": 4},

@@ -19,7 +19,7 @@ using:
 ## Installing
 
 The Tenet 70 uses the stock Hexcore IAP bootloader, flashed with `hexcore_flash`
-from [Tenet70-Tools](https://github.com/connorgallopo/Tenet70-Tools) — a fork of
+from [Tenet70-Tools](https://github.com/connorgallopo/Tenet70-Tools), a fork of
 [AnnePro2-Tools](https://github.com/OpenAnnePro/AnnePro2-Tools).
 
 1. Build the tool: clone [Tenet70-Tools](https://github.com/connorgallopo/Tenet70-Tools)
@@ -31,7 +31,7 @@ from [Tenet70-Tools](https://github.com/connorgallopo/Tenet70-Tools) — a fork 
 
        hexcore_flash --device tenet-70 metakey_tenet_default.bin
 
-`QK_BOOT` (Fn + Esc in the default keymap) also re-enters IAP mode from within QMK.
+`QK_BOOT` (Fn + Backspace in the default keymap) also re-enters IAP mode from within QMK.
 
 ## Recovery
 

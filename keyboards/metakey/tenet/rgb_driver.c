@@ -24,6 +24,8 @@
 #define FRAME_SIZE 218
 
 // Sub-MCU and R/G/B byte offsets for each LED, in keyboard.json layout order.
+// The two indicators are the spare channels the factory firmware uses for
+// its side lights.
 static const struct {
     uint8_t chip, r, g, b;
 } led_map[RGB_MATRIX_LED_COUNT] = {
@@ -100,6 +102,8 @@ static const struct {
     {1,  24,  25,  26},  // Left
     {1,  60,  61,  62},  // Down
     {1,  96,  97,  98},  // Right
+    {0,  15,  16,  17},  // Left indicator
+    {0,  33,  34,  35},  // Right indicator
 };
 
 static rgb_t   led_state[RGB_MATRIX_LED_COUNT];

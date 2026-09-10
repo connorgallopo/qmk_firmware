@@ -55,6 +55,19 @@ static void load_text_from_eeprom_or_default(void) {
     oled_text[i] = '\0';
 }
 
+#ifdef RGB_MATRIX_ENABLE
+bool rgb_matrix_indicators_kb(void) {
+    if (!rgb_matrix_indicators_user()) {
+        return false;
+    }
+    if (host_keyboard_led_state().caps_lock) {
+        rgb_matrix_set_color(TENET_LED_IND_L, 255, 255, 255);
+        rgb_matrix_set_color(TENET_LED_IND_R, 255, 255, 255);
+    }
+    return true;
+}
+#endif
+
 void keyboard_post_init_kb(void) {
     ssd1326_init();
     load_text_from_eeprom_or_default();

@@ -20,6 +20,10 @@ tenet_orientation_t tenet_read_orientation(void);
 const char *tenet_oled_text_get(void);
 void        tenet_oled_text_set(const char *text);
 
+// Side indicator LEDs, last two entries of the RGB layout.
+#define TENET_LED_IND_L 73
+#define TENET_LED_IND_R 74
+
 enum tenet_keycodes {
     KC_OLED_EDIT = QK_KB_0,
     KC_OLED_L,
