@@ -11,12 +11,6 @@ BOARD = METAKEY_TENET
 BOOTLOADER = custom
 PROGRAM_CMD = hexcore_flash --device tenet-70 --boot $(BUILD_DIR)/$(TARGET).bin
 
-RGB_MATRIX_ENABLE = yes
-RGB_MATRIX_DRIVER = ws2812
-WS2812_DRIVER = custom
-
-CUSTOM_MATRIX = lite
 SRC = \
-    matrix.c \
-    ws2812_custom.c \
+    rgb_driver.c \
     ssd1326.c

@@ -36,6 +36,7 @@ from [Tenet70-Tools](https://github.com/connorgallopo/Tenet70-Tools) — a fork 
 ## Recovery
 
 If a bad build leaves the board unresponsive, the SWD pads at PA13/PA14 allow
-re-flashing with an ST-Link or J-Link.
+re-flashing with an ST-Link or J-Link. PA14 doubles as a matrix column once
+the firmware is running, so connect under reset.
 
 See the [build environment setup](https://docs.qmk.fm/#/getting_started_build_tools) and the [make instructions](https://docs.qmk.fm/#/getting_started_make_guide) for more information. Brand new to QMK? Start with our [Complete Newbs Guide](https://docs.qmk.fm/#/newbs).

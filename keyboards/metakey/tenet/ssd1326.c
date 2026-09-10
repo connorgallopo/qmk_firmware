@@ -1,24 +1,14 @@
 // Copyright 2026 Connor Gallopo (@connorgallopo)
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-/*
- * SSD1326 OLED driver for the Metakey Tenet 70.
- *
- * The main MCU drives the OLED directly over I2C0 (PB0 SDA, PB1 SCL, AFIO
- * mode 7, open-drain) with PD1 as active-low RST. 7-bit device addr 0x3C.
- *
- * chibios-contrib has no I2C LLD for the HT32F523xx family, so this file
- * drives the peripheral via raw register writes.
- *
- * The control byte before each transfer selects command (0x00) or data
- * (0x40) stream per SSD1326 datasheet.
- */
+// SSD1326 256x32 OLED on I2C0 (PB0 SDA, PB1 SCL, PD1 reset), address 0x3C.
+// ChibiOS-Contrib has no I2C driver for the HT32F523xx, so the peripheral
+// is programmed directly.
 
 #include "ssd1326.h"
 #include "quantum.h"
 #include <string.h>
 
-/* I2C0_BASE, AFIO_GPIO, AFIO_I2C come from the HT32F523xx CMSIS header. */
 #define I2C0_CR    (*(volatile uint32_t *)(I2C0_BASE + 0x000))
 #define I2C0_SR    (*(volatile uint32_t *)(I2C0_BASE + 0x00C))
 #define I2C0_SHPGR (*(volatile uint32_t *)(I2C0_BASE + 0x010))
@@ -53,12 +43,12 @@
 #define CTRL_CMD   0x00
 #define CTRL_DATA  0x40
 
-#define I2C_POLL_TIMEOUT 2000u   /* ~200 µs at 48 MHz */
+#define I2C_POLL_TIMEOUT 2000u
 
 static uint8_t ssd1326_fb[SSD1326_WIDTH * SSD1326_HEIGHT / 8];
 static bool    ssd1326_dirty = true;
 
-/* Minimal 5x7 font, chars 0x20..0x5F. */
+// 5x7 font covering 0x20 to 0x5F.
 static const uint8_t font5x7[][5] = {
     {0x00,0x00,0x00,0x00,0x00},{0x00,0x00,0x5F,0x00,0x00},
     {0x00,0x07,0x00,0x07,0x00},{0x14,0x7F,0x14,0x7F,0x14},
@@ -94,13 +84,9 @@ static const uint8_t font5x7[][5] = {
     {0x04,0x02,0x01,0x02,0x04},{0x40,0x40,0x40,0x40,0x40},
 };
 
-/* One I2C transaction: START, address, bytes..., STOP.
- *
- * HT32 auto-clears CR_STOP once the STOP condition is generated, so the
- * inter-transaction wait at the top polls CR_STOP (not SR_BUSBUSY — BUSBUSY
- * only drops after CR_STOP clears, and waiting on it first would timeout).
- * Writing TAR triggers START + address. Last byte's TXDE wait ensures it
- * has left the shift register before we raise STOP. */
+// One write transaction. CR_STOP clears itself once the previous STOP has
+// gone out, so wait on that rather than on BUSBUSY. Writing TAR sends the
+// START and address.
 static int i2c0_write(uint8_t addr7, const uint8_t *buf, uint16_t len) {
     uint32_t t;
 
@@ -127,30 +113,26 @@ static int oled_cmd(uint8_t c) {
     return i2c0_write(OLED_I2C_ADDR_7, buf, sizeof(buf));
 }
 
-/* SSD1326 init command stream, sent as one I2C transaction under a single
- * CMD control byte (0x00 = multi-command mode). The controller consumes
- * params inline per each command's spec. */
+// Sent as one transaction so each command sees its parameters.
 static const uint8_t ssd1326_init_cmds[] = {
-    0xFD, 0x12,        /* unlock command lock */
-    0xAE,              /* display off */
-    0xA8, 0x1F,        /* multiplex ratio = 32 rows */
-    0xA2, 0x00,        /* display offset = 0 */
-    0xA1, 0x04,        /* display start line = 4 */
-    0xA0, 0x00,        /* re-map: default; vertical flip handled in software */
-    0x81, 0x3D,        /* contrast = 0x3D */
-    0xBE, 0x0F,        /* VCOMH deselect */
-    0xBC, 0x20,        /* precharge voltage */
-    0xB1, 0x11,        /* phase length */
-    0xB3, 0xF1,        /* oscillator freq */
-    0xA4,              /* entire display ON (resume from forced on/off) */
-    0xAF,              /* display ON */
+    0xFD, 0x12, // unlock
+    0xAE,       // display off
+    0xA8, 0x1F, // 32 rows
+    0xA2, 0x00, // display offset
+    0xA1, 0x04, // start line
+    0xA0, 0x00, // default remap
+    0x81, 0x3D, // contrast
+    0xBE, 0x0F, // VCOMH
+    0xBC, 0x20, // precharge voltage
+    0xB1, 0x11, // phase length
+    0xB3, 0xF1, // oscillator
+    0xA4,       // normal display
+    0xAF,       // display on
 };
 
 void ssd1326_send_command(uint8_t cmd) { oled_cmd(cmd); }
 
 void ssd1326_send_data(const uint8_t *data, uint16_t len) {
-    /* SSD1326 I2C stream: one control byte (0x40) then payload per
-     * transaction. Chunk at 64 bytes to keep the on-stack buffer small. */
     uint8_t buf[65];
     buf[0] = CTRL_DATA;
     while (len > 0) {
@@ -165,15 +147,12 @@ void ssd1326_send_data(const uint8_t *data, uint16_t len) {
 void ssd1326_render(void);
 
 static void i2c0_bus_init(void) {
-    /* Enable I2C0 peripheral clock (APBCCR0 bit 0, per HT32F52352 CKCU). */
     CKCU_APBCCR0 |= CKCU_I2C0_EN;
 
-    /* PB0 SDA, PB1 SCL → AFIO mode 7 (I2C). Open-drain for both. */
     HT_AFIO_GPBCFGLR = (HT_AFIO_GPBCFGLR & ~0xFFu) | (AFIO_I2C << 0) | (AFIO_I2C << 4);
     HT_GPIOB_ODR |= (1u << 0) | (1u << 1);
 
-    /* SCL_freq = PCLK / (SHPGR + SLPGR + 7). PCLK = 48 MHz → ~400 kHz
-     * (SSD1326 fast-mode spec max). */
+    // SCL = PCLK / (SHPGR + SLPGR + 7), about 400 kHz at 48 MHz.
     I2C0_SHPGR = 56;
     I2C0_SLPGR = 56;
     I2C0_TOUT  = 0;
@@ -182,8 +161,7 @@ static void i2c0_bus_init(void) {
 }
 
 void ssd1326_init(void) {
-    /* PD1 = RST. Set AFIO to GPIO explicitly (board.c doesn't configure
-     * PD1), then pulse it HIGH → LOW → HIGH. */
+    // Pulse PD1 low to reset the panel.
     HT_AFIO_GPDCFGLR = (HT_AFIO_GPDCFGLR & ~(0xFu << 4)) | (AFIO_GPIO << 4);
     HT_GPIOD_DIRCR |= PIN_PD1;
     HT_GPIOD_INER  &= ~PIN_PD1;
@@ -208,8 +186,7 @@ void ssd1326_init(void) {
 
 void ssd1326_fb_pixel(uint16_t x, uint8_t y, bool on) {
     if (x >= SSD1326_WIDTH || y >= SSD1326_HEIGHT) return;
-    /* The panel is case-mounted with COM0 at the visual bottom, so y=0 (top)
-     * maps to the last physical row. */
+    // The panel is mounted with COM0 at the bottom.
     y = SSD1326_HEIGHT - 1 - y;
     uint16_t idx = (y * SSD1326_WIDTH + x) / 8;
     uint8_t  m   = 0x80 >> (x % 8);
@@ -237,14 +214,11 @@ void ssd1326_render(void) {
     if (!ssd1326_dirty) return;
     ssd1326_dirty = false;
 
-    /* Set column/row window to cover the whole display. SSD1326 packs 2 px
-     * per byte in 4-bit grayscale mode; 256 px wide → 128 column bytes. */
-    oled_cmd(0x15); oled_cmd(0x00); oled_cmd(0x7F);  /* col 0..127 (in byte units) */
-    oled_cmd(0x75); oled_cmd(0x00); oled_cmd(0x1F);  /* row 0..31 */
+    // Whole display window: 128 column bytes of two 4-bit pixels, 32 rows.
+    oled_cmd(0x15); oled_cmd(0x00); oled_cmd(0x7F);
+    oled_cmd(0x75); oled_cmd(0x00); oled_cmd(0x1F);
 
-    /* Expand each 1-bit source byte into four 4-bit output nibbles (full ON
-     * or OFF — no actual grayscale). Stream in 64-byte chunks behind one
-     * CTRL_DATA control byte. */
+    // Expand each mono bit to a full or empty nibble.
     uint8_t buf[65];
     buf[0] = CTRL_DATA;
     uint8_t cnt = 1;
@@ -275,8 +249,7 @@ void ssd1326_clear(void) {
     ssd1326_render();
 }
 
-/* Clear the framebuffer, draw `text` horizontally + vertically centred
- * (scale 2, falling back to scale 1 when the string won't fit at 2), render. */
+// Draw text centred, at double size if it fits.
 void ssd1326_set_text(const char *text) {
     memset(ssd1326_fb, 0, sizeof(ssd1326_fb));
     if (!text || *text == 0) {

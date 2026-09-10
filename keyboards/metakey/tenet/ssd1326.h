@@ -6,9 +6,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-// SSD1326 256x32 mono OLED, I2C0 (PB0 SDA / PB1 SCL, AFIO mode 7,
-// PD1 active-low RST). 7-bit device address 0x3C.
-
 #define SSD1326_WIDTH  256
 #define SSD1326_HEIGHT 32
 
